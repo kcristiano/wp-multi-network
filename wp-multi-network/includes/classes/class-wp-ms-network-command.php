@@ -81,14 +81,27 @@ class WP_MS_Network_Command extends WP_CLI_Command {
 			$network_admin_id = get_current_user_id();
 		}
 
-		$clone_network    = $assoc_args['clone_network'];
-		$options_to_clone = false;
-
-		if ( ! empty( $clone_network ) && ! get_network( $clone_network ) ) {
+		/*
+		 * For parity with WP_MS_Networks_Admin::handle_add_network():
+		 *
+		 * * Default `clone_network` to site ID from `--url` param
+		 * * Default `options_to_clone` to network_options_to_copy()
+		 */
+		$clone_network = $assoc_args['clone_network'];
+		if ( empty( $clone_network ) ) {
+			$clone_network = get_current_site()->id;
+		}
+		$network_exists = get_network( $clone_network );
+		if ( ! $network_exists ) {
 			WP_CLI::error( sprintf( "Clone network %s doesn't exist.", $clone_network ) );
+		}
 
+		$options_to_clone = false;
+		if ( ! empty( $clone_network ) && $network_exists ) {
 			if ( ! empty( $assoc_args['options_to_clone'] ) ) {
 				$options_to_clone = explode( ',', $assoc_args['options_to_clone'] );
+			} else {
+				$options_to_clone = array_keys( network_options_to_copy() );
 			}
 		}
 
