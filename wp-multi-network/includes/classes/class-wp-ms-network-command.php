@@ -122,6 +122,20 @@ class WP_MS_Network_Command extends WP_CLI_Command {
 			WP_CLI::error( $network_id );
 		}
 
+		// Success!
+		if ( ! empty( $network_id ) && ! is_wp_error( $network_id ) ) {
+
+			// Self-activate on new network.
+			update_network_option(
+				$network_id,
+				'active_sitewide_plugins',
+				array(
+					'wp-multi-network/wpmn-loader.php' => time(),
+				)
+			);
+
+		}
+
 		WP_CLI::success( sprintf( 'Created network %d.', $network_id ) );
 	}
 
